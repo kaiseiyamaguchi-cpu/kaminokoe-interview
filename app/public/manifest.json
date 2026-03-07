@@ -1,7 +1,7 @@
 {
   "name": "Kaminokoe",
   "short_name": "Kaminokoe",
-  "description": "インサイドセールス向けリアルタイムAIコーチング",
+  "description": "AIが、あなたの面接を最強にする。面接練習・リアルタイム支援ツール。",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#030712",
