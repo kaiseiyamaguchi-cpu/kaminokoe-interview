@@ -6,345 +6,274 @@ import Link from "next/link";
 export default function LandingPage() {
   const [openFaq, setOpenFaq] = useState<number | null>(null);
 
-  const features = [
-    {
-      icon: "🎯",
-      title: "リアルタイム回答サジェスト",
-      description: "面接官の質問をAIが即座に解析。最適な回答をリアルタイムで提案します。",
-    },
-    {
-      icon: "🎤",
-      title: "音声認識で自動文字起こし",
-      description: "あなたの回答も面接官の質問も、すべて自動で文字起こし。振り返りも簡単。",
-    },
-    {
-      icon: "📝",
-      title: "プロフィール連携",
-      description: "あなたの経歴・志望動機を登録すれば、よりパーソナライズされた回答を提案。",
-    },
-    {
-      icon: "🔒",
-      title: "プライバシー重視",
-      description: "音声データは端末内で処理。面接内容が外部に漏れる心配はありません。",
-    },
-  ];
-
-  const howItWorks = [
-    {
-      step: "01",
-      title: "プロフィールを入力",
-      description: "あなたの経歴と志望動機を登録",
-    },
-    {
-      step: "02",
-      title: "面接を開始",
-      description: "オンライン面接に神の声を接続",
-    },
-    {
-      step: "03",
-      title: "AIがサポート",
-      description: "リアルタイムで最適な回答をサジェスト",
-    },
-  ];
-
   const faqs = [
     {
-      question: "神の声は無料で使えますか？",
-      answer: "基本機能は無料でご利用いただけます。より高度な機能は有料プランをご用意しています。",
+      question: "本当に無料で使えるの？",
+      answer:
+        "はい。基本機能は完全無料です。まずは試してみてください。",
     },
     {
-      question: "どんな面接に対応していますか？",
-      answer: "新卒採用、中途採用、アルバイト面接など、あらゆる面接に対応しています。日本語での面接に最適化されています。",
+      question: "音声データはどうなる？",
+      answer:
+        "端末内でリアルタイム処理されます。サーバーに保存されることはありません。",
     },
     {
-      question: "音声データはどう扱われますか？",
-      answer: "音声データは端末内でリアルタイム処理され、サーバーに保存されることはありません。プライバシーを最優先に設計しています。",
+      question: "どんな面接でも使える？",
+      answer:
+        "新卒・中途・アルバイト、すべての面接に対応しています。日本語に最適化されています。",
     },
     {
-      question: "面接中にバレませんか？",
-      answer: "神の声は面接練習・準備ツールとして設計されています。実際の面接でのご使用は、応募先企業のポリシーをご確認ください。",
+      question: "実際の面接で使っていい？",
+      answer:
+        "神の声は面接練習・準備ツールです。実際の面接でのご使用は、応募先企業のポリシーをご確認ください。",
     },
-  ];
-
-  const stats = [
-    { value: "3倍", label: "内定率向上" },
-    { value: "10,000+", label: "ユーザー数" },
-    { value: "98%", label: "満足度" },
   ];
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-slate-900 via-slate-800 to-slate-900 text-white">
+    <div className="min-h-screen bg-[#fafafa] text-[#1a1a1a]">
       {/* Header */}
-      <header className="fixed top-0 left-0 right-0 z-50 bg-slate-900/80 backdrop-blur-md border-b border-slate-700/50">
-        <div className="max-w-6xl mx-auto px-4 py-4 flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <span className="text-2xl">⛩️</span>
-            <span className="text-xl font-bold bg-gradient-to-r from-amber-400 to-orange-500 bg-clip-text text-transparent">
-              神の声
-            </span>
-          </div>
-          <nav className="hidden md:flex items-center gap-8">
-            <a href="#features" className="text-sm text-slate-300 hover:text-white transition">
-              機能
-            </a>
-            <a href="#how-it-works" className="text-sm text-slate-300 hover:text-white transition">
-              使い方
-            </a>
-            <a href="#faq" className="text-sm text-slate-300 hover:text-white transition">
-              FAQ
-            </a>
-          </nav>
+      <header className="fixed top-0 left-0 right-0 z-50 bg-white/90 backdrop-blur-sm border-b border-[#e5e7eb]">
+        <div className="max-w-5xl mx-auto px-6 py-4 flex items-center justify-between">
+          <span className="text-lg font-medium tracking-tight text-[#1e3a5f]">
+            神の声
+          </span>
           <Link
             href="/"
-            className="px-4 py-2 bg-gradient-to-r from-amber-500 to-orange-600 text-white text-sm font-medium rounded-lg hover:from-amber-600 hover:to-orange-700 transition shadow-lg shadow-orange-500/25"
+            className="px-4 py-2 text-sm bg-[#f97316] text-white rounded hover:bg-[#ea580c] transition"
           >
-            無料で始める
+            始める
           </Link>
         </div>
       </header>
 
-      {/* Hero Section */}
-      <section className="pt-32 pb-20 px-4">
-        <div className="max-w-4xl mx-auto text-center">
-          {/* Badge */}
-          <div className="inline-flex items-center gap-2 px-4 py-2 bg-slate-800/50 border border-slate-700 rounded-full text-sm text-slate-300 mb-8">
-            <span className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></span>
-            就活生・転職者向けAI面接サポート
-          </div>
-
-          {/* Main Copy */}
-          <h1 className="text-4xl md:text-6xl font-bold mb-6 leading-tight">
-            <span className="bg-gradient-to-r from-amber-400 via-orange-500 to-red-500 bg-clip-text text-transparent">
-              面接をハックせよ
+      {/* Hero */}
+      <section className="pt-32 pb-24 px-6">
+        <div className="max-w-3xl mx-auto">
+          <p className="text-sm text-[#6b7280] mb-6">面接AI</p>
+          <h1 className="text-4xl md:text-5xl font-medium leading-tight mb-6 tracking-tight text-[#1e3a5f]">
+            面接で頭が真っ白になっても、
+            <br />
+            <span className="relative inline-block">
+              もう大丈夫。
+              <svg
+                className="absolute -bottom-1 left-0 w-full"
+                height="8"
+                viewBox="0 0 200 8"
+                fill="none"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path
+                  d="M1 5.5C40 2 80 7 120 4C160 1 180 6 199 3"
+                  stroke="#f97316"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                />
+              </svg>
             </span>
           </h1>
-          <p className="text-xl md:text-2xl text-slate-300 mb-4">
-            神の声が、あなたの面接を最強にする
+          <p className="text-lg text-[#4b5563] mb-10 max-w-xl leading-relaxed">
+            AIが面接官の質問をリアルタイムで聞き取り、
+            あなたに最適な回答のヒントを表示します。
+            緊張で言葉が出てこない、あの瞬間をなくす。
           </p>
-          <p className="text-slate-400 mb-10 max-w-2xl mx-auto">
-            AIがリアルタイムで質問を解析し、最適な回答をサジェスト。
-            緊張してド忘れしても大丈夫。神の声があなたを導きます。
-          </p>
-
-          {/* CTA */}
-          <div className="flex flex-col sm:flex-row gap-4 justify-center items-center mb-12">
+          <div className="flex flex-col sm:flex-row gap-3">
             <Link
               href="/"
-              className="w-full sm:w-auto px-8 py-4 bg-gradient-to-r from-amber-500 to-orange-600 text-white font-bold text-lg rounded-xl hover:from-amber-600 hover:to-orange-700 transition shadow-xl shadow-orange-500/30"
+              className="px-6 py-3 bg-[#f97316] text-white font-medium rounded hover:bg-[#ea580c] transition text-center"
             >
-              無料で始める
+              無料で試す
             </Link>
             <a
-              href="#how-it-works"
-              className="w-full sm:w-auto px-8 py-4 bg-slate-800 text-white font-medium text-lg rounded-xl border border-slate-700 hover:bg-slate-700 transition"
+              href="#demo"
+              className="px-6 py-3 text-[#4b5563] border border-[#d1d5db] rounded hover:border-[#9ca3af] hover:text-[#1f2937] transition text-center"
             >
-              使い方を見る
+              どう動くか見る
             </a>
           </div>
-
-          {/* Social Proof */}
-          <div className="flex flex-wrap justify-center gap-8 md:gap-16">
-            {stats.map((stat, index) => (
-              <div key={index} className="text-center">
-                <div className="text-3xl md:text-4xl font-bold bg-gradient-to-r from-amber-400 to-orange-500 bg-clip-text text-transparent">
-                  {stat.value}
-                </div>
-                <div className="text-sm text-slate-400">{stat.label}</div>
-              </div>
-            ))}
-          </div>
         </div>
       </section>
 
-      {/* Product Visual / Demo */}
-      <section className="py-16 px-4">
-        <div className="max-w-5xl mx-auto">
-          <div className="relative rounded-2xl overflow-hidden border border-slate-700 bg-slate-800/50 shadow-2xl">
-            {/* Mock Interface */}
-            <div className="bg-slate-900 px-4 py-3 border-b border-slate-700 flex items-center gap-2">
-              <div className="w-3 h-3 rounded-full bg-red-500"></div>
-              <div className="w-3 h-3 rounded-full bg-yellow-500"></div>
-              <div className="w-3 h-3 rounded-full bg-green-500"></div>
-              <span className="ml-4 text-sm text-slate-400">神の声 - 面接サポート</span>
-            </div>
-            <div className="p-8 space-y-6">
-              {/* Sample Conversation */}
-              <div className="flex gap-4">
-                <div className="w-10 h-10 rounded-full bg-slate-700 flex items-center justify-center text-sm">
-                  👔
-                </div>
-                <div className="flex-1">
-                  <p className="text-xs text-slate-500 mb-1">面接官</p>
-                  <div className="bg-slate-700/50 rounded-lg p-4">
-                    <p className="text-slate-200">
-                      当社を志望した理由を教えてください。
-                    </p>
-                  </div>
-                </div>
-              </div>
-              <div className="flex gap-4">
-                <div className="w-10 h-10 rounded-full bg-gradient-to-br from-amber-500 to-orange-600 flex items-center justify-center text-sm">
-                  ⛩️
-                </div>
-                <div className="flex-1">
-                  <p className="text-xs text-amber-400 mb-1">神の声</p>
-                  <div className="bg-gradient-to-r from-amber-500/10 to-orange-500/10 border border-amber-500/30 rounded-lg p-4">
-                    <p className="text-slate-200">
-                      <span className="text-amber-400">💡 回答サジェスト:</span>{" "}
-                      御社の「〇〇」という事業に共感しています。私は大学で△△を学び、特に□□の経験を通じて...
-                    </p>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Features */}
-      <section id="features" className="py-20 px-4 bg-slate-800/30">
-        <div className="max-w-6xl mx-auto">
-          <div className="text-center mb-16">
-            <h2 className="text-3xl md:text-4xl font-bold mb-4">
-              面接の不安を、
-              <span className="bg-gradient-to-r from-amber-400 to-orange-500 bg-clip-text text-transparent">
-                自信に変える
-              </span>
-            </h2>
-            <p className="text-slate-400 max-w-2xl mx-auto">
-              神の声は、AIの力であなたの面接をサポート。
-              準備ゼロでも、緊張しても、最高のパフォーマンスを引き出します。
-            </p>
-          </div>
-          <div className="grid md:grid-cols-2 gap-8">
-            {features.map((feature, index) => (
-              <div
-                key={index}
-                className="p-6 rounded-2xl bg-slate-800/50 border border-slate-700 hover:border-amber-500/50 transition group"
-              >
-                <div className="text-4xl mb-4">{feature.icon}</div>
-                <h3 className="text-xl font-bold mb-2 group-hover:text-amber-400 transition">
-                  {feature.title}
-                </h3>
-                <p className="text-slate-400">{feature.description}</p>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* How It Works */}
-      <section id="how-it-works" className="py-20 px-4">
+      {/* Demo / Product Visual */}
+      <section id="demo" className="py-16 px-6">
         <div className="max-w-4xl mx-auto">
-          <div className="text-center mb-16">
-            <h2 className="text-3xl md:text-4xl font-bold mb-4">
-              <span className="bg-gradient-to-r from-amber-400 to-orange-500 bg-clip-text text-transparent">
-                3ステップ
-              </span>
-              で始められる
-            </h2>
-            <p className="text-slate-400">
-              セットアップは簡単。今すぐ神の声を体験しましょう。
-            </p>
-          </div>
-          <div className="space-y-8">
-            {howItWorks.map((item, index) => (
-              <div
-                key={index}
-                className="flex items-start gap-6 p-6 rounded-2xl bg-slate-800/30 border border-slate-700"
-              >
-                <div className="text-4xl font-bold bg-gradient-to-r from-amber-400 to-orange-500 bg-clip-text text-transparent">
-                  {item.step}
-                </div>
-                <div>
-                  <h3 className="text-xl font-bold mb-1">{item.title}</h3>
-                  <p className="text-slate-400">{item.description}</p>
+          <div className="rounded-lg border border-[#e5e7eb] bg-white shadow-sm overflow-hidden">
+            {/* Browser Chrome */}
+            <div className="px-4 py-3 border-b border-[#e5e7eb] flex items-center gap-2 bg-[#f9fafb]">
+              <div className="flex gap-1.5">
+                <div className="w-2.5 h-2.5 rounded-full bg-[#d1d5db]"></div>
+                <div className="w-2.5 h-2.5 rounded-full bg-[#d1d5db]"></div>
+                <div className="w-2.5 h-2.5 rounded-full bg-[#d1d5db]"></div>
+              </div>
+            </div>
+            {/* Content */}
+            <div className="p-6 md:p-8 space-y-6">
+              {/* Interviewer */}
+              <div className="max-w-lg">
+                <p className="text-xs text-[#6b7280] mb-2">面接官</p>
+                <p className="text-[#374151] leading-relaxed">
+                  「当社を志望した理由を教えてください」
+                </p>
+              </div>
+
+              {/* AI Suggestion */}
+              <div className="max-w-lg ml-auto">
+                <p className="text-xs text-[#f97316] mb-2 font-medium">神の声</p>
+                <div className="bg-[#fff7ed] border-l-2 border-[#f97316] p-4 rounded-r">
+                  <p className="text-[#374151] text-sm leading-relaxed">
+                    御社の「〇〇」という事業に共感しました。
+                    私は大学で△△を学び、特に□□の経験を通じて…
+                  </p>
+                  <p className="text-xs text-[#9ca3af] mt-3">
+                    ↑ あなたのプロフィールに基づいた回答例
+                  </p>
                 </div>
               </div>
-            ))}
+
+              {/* Your response */}
+              <div className="max-w-lg">
+                <p className="text-xs text-[#6b7280] mb-2">あなた（文字起こし）</p>
+                <p className="text-[#6b7280]">
+                  「御社の〇〇という事業に共感しています。私は…」
+                </p>
+              </div>
+            </div>
           </div>
         </div>
       </section>
 
-      {/* Testimonials Placeholder */}
-      <section className="py-20 px-4 bg-slate-800/30">
-        <div className="max-w-4xl mx-auto text-center">
-          <h2 className="text-3xl md:text-4xl font-bold mb-4">
-            ユーザーの
-            <span className="bg-gradient-to-r from-amber-400 to-orange-500 bg-clip-text text-transparent">
-              声
-            </span>
+      {/* How it helps */}
+      <section className="py-24 px-6 border-t border-[#e5e7eb]">
+        <div className="max-w-3xl mx-auto">
+          <h2 className="text-2xl font-medium mb-12 text-[#1e3a5f]">
+            こんな経験、ありませんか？
           </h2>
-          <p className="text-slate-400 mb-12">
-            神の声を使って内定を勝ち取ったユーザーの声
-          </p>
-          <div className="grid md:grid-cols-2 gap-6">
-            {[
-              {
-                name: "T.S.",
-                role: "26卒 / IT業界内定",
-                comment: "面接中にド忘れしても、神の声がすぐにヒントをくれた。本当に助かりました。",
-              },
-              {
-                name: "M.K.",
-                role: "転職活動中 / 外資コンサル内定",
-                comment: "ケース面接の対策に最適。AIのサジェストでロジカルに回答できるようになった。",
-              },
-            ].map((testimonial, index) => (
-              <div
-                key={index}
-                className="p-6 rounded-2xl bg-slate-800/50 border border-slate-700 text-left"
-              >
-                <p className="text-slate-300 mb-4">"{testimonial.comment}"</p>
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-full bg-gradient-to-br from-amber-500 to-orange-600 flex items-center justify-center font-bold">
-                    {testimonial.name[0]}
-                  </div>
-                  <div>
-                    <p className="font-medium">{testimonial.name}</p>
-                    <p className="text-sm text-slate-400">{testimonial.role}</p>
-                  </div>
-                </div>
+          <div className="space-y-8">
+            <div className="flex gap-6 items-start">
+              <span className="text-[#9ca3af] text-sm mt-1">01</span>
+              <div>
+                <p className="text-[#374151] mb-1">
+                  準備してたのに、本番で頭が真っ白になった
+                </p>
+                <p className="text-sm text-[#6b7280]">
+                  → AIが即座にヒントを表示。思い出すきっかけを与えます
+                </p>
               </div>
-            ))}
+            </div>
+            <div className="flex gap-6 items-start">
+              <span className="text-[#9ca3af] text-sm mt-1">02</span>
+              <div>
+                <p className="text-[#374151] mb-1">
+                  想定外の質問が来て、しどろもどろになった
+                </p>
+                <p className="text-sm text-[#6b7280]">
+                  → その場でAIが回答の方向性を提案
+                </p>
+              </div>
+            </div>
+            <div className="flex gap-6 items-start">
+              <span className="text-[#9ca3af] text-sm mt-1">03</span>
+              <div>
+                <p className="text-[#374151] mb-1">
+                  自分の経歴をうまく言語化できなかった
+                </p>
+                <p className="text-sm text-[#6b7280]">
+                  → プロフィールを元に、あなたの言葉で回答を提案
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Simple features */}
+      <section className="py-24 px-6 bg-white">
+        <div className="max-w-3xl mx-auto">
+          <h2 className="text-2xl font-medium mb-12 text-[#1e3a5f]">仕組み</h2>
+          <div className="grid md:grid-cols-2 gap-8">
+            <div>
+              <p className="text-sm text-[#6b7280] mb-2">音声認識</p>
+              <p className="text-[#4b5563] leading-relaxed">
+                面接官の質問とあなたの回答を自動で文字起こし。
+                録音ではなくリアルタイム処理。
+              </p>
+            </div>
+            <div>
+              <p className="text-sm text-[#6b7280] mb-2">AI解析</p>
+              <p className="text-[#4b5563] leading-relaxed">
+                質問の意図を理解し、あなたの経歴に基づいた
+                回答のヒントを即座に生成。
+              </p>
+            </div>
+            <div>
+              <p className="text-sm text-[#6b7280] mb-2">プライバシー</p>
+              <p className="text-[#4b5563] leading-relaxed">
+                音声は端末内で処理。
+                サーバーに送信・保存されることはありません。
+              </p>
+            </div>
+            <div>
+              <p className="text-sm text-[#6b7280] mb-2">パーソナライズ</p>
+              <p className="text-[#4b5563] leading-relaxed">
+                あなたの経歴・志望動機を登録すると、
+                より的確な回答を提案できます。
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Social proof - minimal */}
+      <section className="py-24 px-6 border-t border-[#e5e7eb]">
+        <div className="max-w-3xl mx-auto">
+          <h2 className="text-2xl font-medium mb-12 text-[#1e3a5f]">
+            使った人の声
+          </h2>
+          <div className="space-y-8">
+            <blockquote className="border-l-2 border-[#1e3a5f] pl-6">
+              <p className="text-[#4b5563] leading-relaxed mb-3">
+                「緊張で何も考えられなくなる自分が嫌だった。
+                神の声があると、最悪の状態でも立て直せる安心感がある」
+              </p>
+              <cite className="text-sm text-[#6b7280] not-italic">
+                26卒 / IT企業内定
+              </cite>
+            </blockquote>
+            <blockquote className="border-l-2 border-[#1e3a5f] pl-6">
+              <p className="text-[#4b5563] leading-relaxed mb-3">
+                「ケース面接の練習に使った。
+                自分の回答に足りない視点をAIが補完してくれるので、
+                一人でも質の高い練習ができた」
+              </p>
+              <cite className="text-sm text-[#6b7280] not-italic">
+                転職活動中 / コンサル志望
+              </cite>
+            </blockquote>
           </div>
         </div>
       </section>
 
       {/* FAQ */}
-      <section id="faq" className="py-20 px-4">
-        <div className="max-w-3xl mx-auto">
-          <div className="text-center mb-12">
-            <h2 className="text-3xl md:text-4xl font-bold mb-4">
-              よくある
-              <span className="bg-gradient-to-r from-amber-400 to-orange-500 bg-clip-text text-transparent">
-                質問
-              </span>
-            </h2>
-          </div>
-          <div className="space-y-4">
+      <section id="faq" className="py-24 px-6 bg-white">
+        <div className="max-w-2xl mx-auto">
+          <h2 className="text-2xl font-medium mb-12 text-[#1e3a5f]">
+            よくある質問
+          </h2>
+          <div className="space-y-1">
             {faqs.map((faq, index) => (
-              <div
-                key={index}
-                className="border border-slate-700 rounded-xl overflow-hidden"
-              >
+              <div key={index} className="border-b border-[#e5e7eb]">
                 <button
                   onClick={() => setOpenFaq(openFaq === index ? null : index)}
-                  className="w-full px-6 py-4 text-left flex items-center justify-between bg-slate-800/50 hover:bg-slate-800 transition"
+                  className="w-full py-5 text-left flex items-center justify-between hover:text-[#1e3a5f] transition"
                 >
-                  <span className="font-medium">{faq.question}</span>
-                  <span
-                    className={`transform transition ${
-                      openFaq === index ? "rotate-180" : ""
-                    }`}
-                  >
-                    ▼
+                  <span className="text-[#374151]">{faq.question}</span>
+                  <span className="text-[#9ca3af] text-sm">
+                    {openFaq === index ? "−" : "+"}
                   </span>
                 </button>
                 {openFaq === index && (
-                  <div className="px-6 py-4 bg-slate-800/30 text-slate-300">
+                  <p className="pb-5 text-[#6b7280] text-sm leading-relaxed">
                     {faq.answer}
-                  </div>
+                  </p>
                 )}
               </div>
             ))}
@@ -353,58 +282,45 @@ export default function LandingPage() {
       </section>
 
       {/* Final CTA */}
-      <section className="py-20 px-4">
-        <div className="max-w-4xl mx-auto text-center">
-          <h2 className="text-3xl md:text-4xl font-bold mb-6">
-            今すぐ
-            <span className="bg-gradient-to-r from-amber-400 to-orange-500 bg-clip-text text-transparent">
-              面接をハック
-            </span>
-            しよう
+      <section className="py-24 px-6 border-t border-[#e5e7eb]">
+        <div className="max-w-2xl mx-auto text-center">
+          <h2 className="text-2xl font-medium mb-4 text-[#1e3a5f]">
+            次の面接、神の声と一緒に。
           </h2>
-          <p className="text-slate-400 mb-8 max-w-2xl mx-auto">
-            神の声があなたの面接を最強にする。
-            無料で今すぐ始めましょう。
+          <p className="text-[#6b7280] mb-8">
+            無料で始められます。クレジットカードは不要です。
           </p>
           <Link
             href="/"
-            className="inline-block px-10 py-5 bg-gradient-to-r from-amber-500 to-orange-600 text-white font-bold text-xl rounded-xl hover:from-amber-600 hover:to-orange-700 transition shadow-xl shadow-orange-500/30"
+            className="inline-block px-8 py-4 bg-[#f97316] text-white font-medium rounded hover:bg-[#ea580c] transition"
           >
-            無料で始める
+            無料で試す
           </Link>
-          <p className="text-sm text-slate-500 mt-4">
-            クレジットカード不要 • 3分でセットアップ完了
-          </p>
         </div>
       </section>
 
       {/* Footer */}
-      <footer className="py-12 px-4 border-t border-slate-800">
-        <div className="max-w-6xl mx-auto">
-          <div className="flex flex-col md:flex-row items-center justify-between gap-6">
-            <div className="flex items-center gap-2">
-              <span className="text-2xl">⛩️</span>
-              <span className="text-xl font-bold bg-gradient-to-r from-amber-400 to-orange-500 bg-clip-text text-transparent">
-                神の声
-              </span>
-            </div>
-            <div className="flex gap-6 text-sm text-slate-400">
-              <a href="#" className="hover:text-white transition">利用規約</a>
-              <a href="#" className="hover:text-white transition">プライバシーポリシー</a>
-              <a href="#" className="hover:text-white transition">お問い合わせ</a>
+      <footer className="py-12 px-6 border-t border-[#e5e7eb] bg-white">
+        <div className="max-w-5xl mx-auto">
+          <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-6 mb-8">
+            <span className="text-sm text-[#6b7280]">神の声</span>
+            <div className="flex gap-6 text-sm text-[#6b7280]">
+              <a href="#" className="hover:text-[#374151] transition">
+                利用規約
+              </a>
+              <a href="#" className="hover:text-[#374151] transition">
+                プライバシー
+              </a>
             </div>
           </div>
-          {/* Legal Disclaimer */}
-          <div className="mt-8 pt-6 border-t border-slate-800 text-center">
-            <p className="text-xs text-slate-500 max-w-2xl mx-auto">
-              ※ 本サービスは面接練習・準備を支援するものです。
-              実際の面接でのご使用は、応募先企業のポリシーをご確認ください。
-              本サービスの使用による採用結果について、当社は一切の責任を負いません。
-            </p>
-          </div>
-          <div className="mt-4 text-center text-xs text-slate-500">
-            © 2026 Kaminokoe. All rights reserved.
-          </div>
+          <p className="text-xs text-[#9ca3af] leading-relaxed max-w-xl">
+            ※ 本サービスは面接練習・準備を支援するものです。
+            実際の面接でのご使用は応募先企業のポリシーをご確認ください。
+            本サービスの使用による採用結果について当社は責任を負いません。
+          </p>
+          <p className="text-xs text-[#d1d5db] mt-6">
+            © 2026 Kaminokoe
+          </p>
         </div>
       </footer>
     </div>
