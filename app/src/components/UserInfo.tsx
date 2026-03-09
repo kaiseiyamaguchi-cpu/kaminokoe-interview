@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useAuthActions } from "@convex-dev/auth/react";
 import { useQuery, useMutation } from "convex/react";
 import { api } from "../../convex/_generated/api";
@@ -13,23 +14,33 @@ export function UserInfo() {
   // 初回ログイン時にプロフィールを作成
   useEffect(() => {
     if (profile === null) {
-      getOrCreateProfile();
+      getOrCreateProfile({});
     }
   }, [profile, getOrCreateProfile]);
 
   if (profile === undefined) {
-    return <div className="animate-pulse">読み込み中...</div>;
+    return <div className="animate-pulse text-sm">読み込み中...</div>;
   }
+
+  const tickets = profile?.tickets ?? 0;
+  const minutes = tickets * 10;
 
   return (
     <div className="flex items-center gap-4">
-      <div className="text-sm">
-        <span className="font-medium">残りセッション:</span>{" "}
-        <span className="text-blue-600 font-bold">{profile?.sessions ?? 0}回</span>
-      </div>
+      <Link
+        href="/mypage"
+        className="text-sm flex items-center gap-2 hover:opacity-80 transition"
+      >
+        <span className="bg-primary/10 text-primary px-2 py-1 rounded-lg font-medium">
+          🎫 {tickets}枚
+        </span>
+        <span className="text-muted-foreground text-xs">
+          （{minutes}分）
+        </span>
+      </Link>
       <button
         onClick={() => signOut()}
-        className="text-sm text-gray-500 hover:text-gray-700"
+        className="text-xs text-muted-foreground hover:text-foreground"
       >
         ログアウト
       </button>

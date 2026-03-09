@@ -304,13 +304,16 @@ export default function LandingPage() {
         <div className="max-w-5xl mx-auto">
           <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-6 mb-8">
             <span className="text-sm text-[#6b7280]">神の声</span>
-            <div className="flex gap-6 text-sm text-[#6b7280]">
-              <a href="#" className="hover:text-[#374151] transition">
+            <div className="flex flex-wrap gap-4 md:gap-6 text-sm text-[#6b7280]">
+              <Link href="/legal/tokushoho" className="hover:text-[#374151] transition">
+                特定商取引法に基づく表示
+              </Link>
+              <Link href="/legal/terms" className="hover:text-[#374151] transition">
                 利用規約
-              </a>
-              <a href="#" className="hover:text-[#374151] transition">
-                プライバシー
-              </a>
+              </Link>
+              <Link href="/legal/privacy" className="hover:text-[#374151] transition">
+                プライバシーポリシー
+              </Link>
             </div>
           </div>
           <p className="text-xs text-[#9ca3af] leading-relaxed max-w-xl">
@@ -319,7 +322,7 @@ export default function LandingPage() {
             本サービスの使用による採用結果について当社は責任を負いません。
           </p>
           <p className="text-xs text-[#d1d5db] mt-6">
-            © 2026 Kaminokoe
+            © 2026 Kaminokoe / 株式会社AccelShift
           </p>
         </div>
       </footer>

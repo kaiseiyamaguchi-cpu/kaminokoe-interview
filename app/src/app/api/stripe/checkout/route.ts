@@ -8,29 +8,41 @@ const getStripe = () => {
   return new Stripe(process.env.STRIPE_SECRET_KEY);
 };
 
+// チケット制の新プラン
 const PLANS = {
-  single: {
-    price: 398,
-    sessions: 1,
-    name: "1セッション",
+  ticket1: {
+    price: 200,
+    tickets: 1,
+    name: "1チケット",
+    description: "10分間の面接練習",
   },
-  pack10: {
-    price: 3580,
-    sessions: 10,
-    name: "10セッション（10%OFF）",
+  ticket3: {
+    price: 500,
+    tickets: 3,
+    name: "30分パック",
+    description: "30分間の面接練習（3チケット）",
   },
-  pack15: {
-    price: 4980,
-    sessions: 15,
-    name: "15セッション（15%OFF）",
+  ticket18: {
+    price: 2500,
+    tickets: 18,
+    name: "5回分パック",
+    description: "180分間の面接練習（18チケット）",
+  },
+  ticket36: {
+    price: 5000,
+    tickets: 36,
+    name: "10回分パック",
+    description: "360分間の面接練習（36チケット）",
   },
 } as const;
+
+type PlanType = keyof typeof PLANS;
 
 export async function POST(req: NextRequest) {
   try {
     const { plan, userId } = await req.json();
 
-    if (!plan || !PLANS[plan as keyof typeof PLANS]) {
+    if (!plan || !PLANS[plan as PlanType]) {
       return NextResponse.json({ error: "Invalid plan" }, { status: 400 });
     }
 
@@ -38,7 +50,8 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "User ID required" }, { status: 400 });
     }
 
-    const planInfo = PLANS[plan as keyof typeof PLANS];
+    const planInfo = PLANS[plan as PlanType];
+    const appUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
 
     const stripe = getStripe();
     const session = await stripe.checkout.sessions.create({
@@ -48,8 +61,8 @@ export async function POST(req: NextRequest) {
           price_data: {
             currency: "jpy",
             product_data: {
-              name: `Kaminokoe ${planInfo.name}`,
-              description: `面接練習セッション ${planInfo.sessions}回分`,
+              name: `神の声 ${planInfo.name}`,
+              description: planInfo.description,
             },
             unit_amount: planInfo.price,
           },
@@ -57,12 +70,12 @@ export async function POST(req: NextRequest) {
         },
       ],
       mode: "payment",
-      success_url: `${process.env.NEXT_PUBLIC_APP_URL}/?success=true&plan=${plan}`,
-      cancel_url: `${process.env.NEXT_PUBLIC_APP_URL}/?canceled=true`,
+      success_url: `${appUrl}/mypage?success=true&plan=${plan}&tickets=${planInfo.tickets}`,
+      cancel_url: `${appUrl}/mypage?canceled=true`,
       metadata: {
         userId,
         plan,
-        sessions: planInfo.sessions.toString(),
+        tickets: planInfo.tickets.toString(),
       },
     });
 

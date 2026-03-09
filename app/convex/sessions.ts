@@ -2,14 +2,20 @@ import { v } from "convex/values";
 import { mutation, query } from "./_generated/server";
 import { getAuthUserId } from "@convex-dev/auth/server";
 
-const SESSION_MAX_MINUTES = 30;
+const TICKET_MINUTES = 10; // 1チケット = 10分
 
 export const startSession = mutation({
-  args: {},
-  handler: async (ctx) => {
+  args: {
+    ticketCount: v.number(), // 使用するチケット数
+  },
+  handler: async (ctx, args) => {
     const userId = await getAuthUserId(ctx);
     if (!userId) {
       throw new Error("Not authenticated");
+    }
+
+    if (args.ticketCount < 1) {
+      throw new Error("チケット数は1以上を指定してください");
     }
 
     const profile = await ctx.db
@@ -21,11 +27,11 @@ export const startSession = mutation({
       throw new Error("Profile not found");
     }
 
-    if (profile.sessions < 1) {
-      throw new Error("No sessions remaining");
+    if (profile.tickets < args.ticketCount) {
+      throw new Error("チケットが不足しています");
     }
 
-    // Check for active session
+    // Check for active session and auto-close it
     const activeSession = await ctx.db
       .query("sessionLogs")
       .withIndex("by_user", (q) => q.eq("userId", userId))
@@ -33,16 +39,44 @@ export const startSession = mutation({
       .first();
 
     if (activeSession) {
-      throw new Error("Session already active");
+      // 前回のセッションを強制終了（チケットは既に消費済みなので返却しない）
+      await ctx.db.patch(activeSession._id, {
+        endedAt: Date.now(),
+        status: "cancelled",
+        ticketsConsumed: activeSession.allocatedTickets ?? 1,
+      });
     }
+
+    const maxDurationMinutes = args.ticketCount * TICKET_MINUTES;
+
+    // チケットを先に消費
+    const newTicketCount = profile.tickets - args.ticketCount;
+    await ctx.db.patch(profile._id, {
+      tickets: newTicketCount,
+    });
+
+    // トランザクション記録
+    await ctx.db.insert("ticketTransactions", {
+      userId,
+      amount: -args.ticketCount,
+      type: "consume",
+      description: `面接練習 ${maxDurationMinutes}分`,
+      createdAt: Date.now(),
+    });
 
     const sessionId = await ctx.db.insert("sessionLogs", {
       userId,
       startedAt: Date.now(),
+      allocatedTickets: args.ticketCount,
+      maxDurationMinutes,
       status: "active",
     });
 
-    return { sessionId, remainingSessions: profile.sessions };
+    return {
+      sessionId,
+      maxDurationMinutes,
+      remainingTickets: newTicketCount,
+    };
   },
 });
 
@@ -79,27 +113,20 @@ export const endSession = mutation({
       (endedAt - session.startedAt) / (1000 * 60)
     );
 
-    // 30分超過で2セッション消費
-    const sessionsConsumed = durationMinutes > SESSION_MAX_MINUTES ? 2 : 1;
+    const ticketsConsumed = session.allocatedTickets ?? 1;
 
-    // Update session log
+    // チケットは開始時に消費済み
     await ctx.db.patch(args.sessionId, {
       endedAt,
       durationMinutes,
-      sessionsConsumed,
+      ticketsConsumed,
       status: "completed",
-    });
-
-    // Deduct sessions from profile
-    const newSessionCount = Math.max(0, profile.sessions - sessionsConsumed);
-    await ctx.db.patch(profile._id, {
-      sessions: newSessionCount,
     });
 
     return {
       durationMinutes,
-      sessionsConsumed,
-      remainingSessions: newSessionCount,
+      ticketsConsumed,
+      remainingTickets: profile.tickets,
     };
   },
 });
