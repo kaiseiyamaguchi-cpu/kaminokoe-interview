@@ -4,6 +4,7 @@ import { useState, useRef, useCallback, useEffect } from "react";
 import { useConvexAuth, useMutation, useQuery } from "convex/react";
 import { api } from "../../convex/_generated/api";
 import { Id } from "../../convex/_generated/dataModel";
+import Link from "next/link";
 import { AuthForm } from "@/components/AuthForm";
 import { UserInfo } from "@/components/UserInfo";
 import { AffiliatePromo } from "@/components/AffiliatePromo";
@@ -32,7 +33,7 @@ type ProfileData = {
   motivation: string;
 };
 
-const getSystemInstructions = (profile: ProfileData) => `あなたは面接支援AIです。面接官の質問に対して、就活生がそのまま読み上げられる回答を提供してください。
+const getSystemInstructions = (profile: ProfileData) => `あなたは面接支援AIです。面接中の音声を聞いて、面接官の質問にのみ回答を提供します。
 
 ## 就活生のプロフィール
 ${profile.companyName ? `【志望企業】${profile.companyName}` : ""}
@@ -41,39 +42,40 @@ ${profile.strengths ? `【強み】${profile.strengths}` : ""}
 ${profile.experience ? `【ガクチカ】${profile.experience}` : ""}
 ${profile.motivation ? `【志望理由】${profile.motivation}` : ""}
 
-## 応答しないケース
-以下の場合のみ「[SKIP]」と出力：
-- 明らかに就活生自身の発言（自分が話している内容）
-- 単純な挨拶のみ（よろしくお願いします、ありがとうございます等）
-- 面接官の事務的な案内（次の質問に移りますね、等）
+## 最重要ルール：質問にのみ回答
 
-## 応答するケース（積極的に回答）
-面接官からの質問には**すべて回答**する：
-- 定番の質問（志望動機、自己PR、ガクチカ、強み・弱み）
-- 想定外・変わった質問（最近読んだ本、趣味、時事問題、フェルミ推定等）
-- 深掘り質問（なぜ？具体的には？他には？）
-- 圧迫気味の質問にも冷静に対応
+### 回答する（以下のパターンのみ）
+- 「？」「〜ですか」「〜ますか」「〜でしょうか」で終わる質問
+- 「教えてください」「聞かせてください」「お聞かせください」を含む
+- 「自己紹介をどうぞ」「〜について話してください」などの指示
 
-**重要**: 質問かどうか迷ったら、回答を出力する（SKIPしない）
+### [SKIP]を返す（以下は絶対に回答しない）
+- 「〜です。」「〜ます。」「〜ました。」「〜からです。」で終わる → 誰かの回答文
+- 「〜と思います」「〜と考えています」「〜と感じています」→ 候補者の意見
+- 「御社」「貴社」を含む発言 → 候補者が話している
+- 「よろしくお願いします」「ありがとうございます」などの挨拶
+- 「私は〜」「私の〜」で始まる自己紹介や説明
+- 面接官の事務連絡（「次の質問に移ります」等）
 
-## 出力ルール
+### 判断基準
+**質問形式でない発言 = [SKIP]**
+迷ったら [SKIP] を返す。誤って回答するより、SKIPする方が安全。
+
+## 回答の出力ルール
 1. 回答は**そのまま声に出して読める文章**にする（箇条書きNG、解説NG）
 2. 「〜と思います」「〜です」など、自然な敬語の一人称で書く
 3. プロフィール情報を自然に織り込む
-${profile.companyVision ? `4. 企業理念に沿った回答にする` : ""}
+4. 30秒〜1分で読める長さ（150〜300文字程度）
+5. 具体的なエピソードや数字を含める
+${profile.companyVision ? `6. 企業理念に沿った回答にする` : ""}
 
 ## 想定外の質問への対応
 - プロフィールに情報がなくても、一般的で無難な回答を生成
 - 「わかりません」とは言わず、考え方や姿勢を示す回答にする
-- フェルミ推定等は論理的な思考プロセスを示す
 
-## 出力形式（厳守）
-質問に対する回答文をそのまま出力。余計な前置きや解説は一切不要。
-
-## 重要
-- 30秒〜1分で読める長さ（150〜300文字程度）
-- 具体的なエピソードや数字を含める
-- 暗記感が出ないよう、自然な話し言葉で
+## 出力形式
+- 質問への回答: そのまま読める回答文を出力
+- 質問以外: [SKIP] のみを出力
 `;
 
 export default function Home() {
@@ -96,8 +98,10 @@ export default function Home() {
   });
 
   // ターン追跡: "interviewer" = 面接官の番, "candidate" = 候補者の番
-  const [currentTurn, setCurrentTurn] = useState<"interviewer" | "candidate">("interviewer");
+  // useRefを使用して、useCallback内でも常に最新値を参照できるようにする
+  const currentTurnRef = useRef<"interviewer" | "candidate">("interviewer");
   const lastSuggestionTimeRef = useRef<number>(0);
+  const lastSuggestionTextRef = useRef<string>(""); // 最後のAI提案内容を保存
   const [isLoadingVision, setIsLoadingVision] = useState(false);
   const [currentSessionId, setCurrentSessionId] = useState<Id<"sessionLogs"> | null>(null);
 
@@ -116,7 +120,12 @@ export default function Home() {
   const pcRef = useRef<RTCPeerConnection | null>(null);
   const dcRef = useRef<RTCDataChannel | null>(null);
   const streamRef = useRef<MediaStream | null>(null);
+  const systemStreamRef = useRef<MediaStream | null>(null);
+  const audioContextRef = useRef<AudioContext | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+
+  // システムオーディオ共有状態
+  const [isSystemAudioEnabled, setIsSystemAudioEnabled] = useState(false);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -161,19 +170,60 @@ export default function Home() {
       const tokenData = await tokenRes.json();
       const token = tokenData.value;
 
-      const stream = await navigator.mediaDevices.getUserMedia({
+      // マイク入力を取得
+      const micStream = await navigator.mediaDevices.getUserMedia({
         audio: {
           echoCancellation: true,
           noiseSuppression: true,
           autoGainControl: true,
         },
       });
-      streamRef.current = stream;
+      streamRef.current = micStream;
+
+      // システムオーディオを取得（画面共有経由）
+      let systemStream: MediaStream | null = null;
+      try {
+        systemStream = await navigator.mediaDevices.getDisplayMedia({
+          video: true, // 画面共有ダイアログを出すために必要
+          audio: {
+            echoCancellation: false,
+            noiseSuppression: false,
+            autoGainControl: false,
+          },
+        });
+        // ビデオトラックは不要なので停止
+        systemStream.getVideoTracks().forEach(track => track.stop());
+        systemStreamRef.current = systemStream;
+        setIsSystemAudioEnabled(true);
+      } catch (e) {
+        console.warn("システムオーディオの取得をスキップしました:", e);
+        setIsSystemAudioEnabled(false);
+      }
+
+      // AudioContextでマイクとシステムオーディオを混合
+      let combinedStream: MediaStream;
+      if (systemStream && systemStream.getAudioTracks().length > 0) {
+        const audioContext = new AudioContext();
+        audioContextRef.current = audioContext;
+
+        const micSource = audioContext.createMediaStreamSource(micStream);
+        const systemSource = audioContext.createMediaStreamSource(systemStream);
+        const destination = audioContext.createMediaStreamDestination();
+
+        // 両方の音源を接続
+        micSource.connect(destination);
+        systemSource.connect(destination);
+
+        combinedStream = destination.stream;
+      } else {
+        // システムオーディオがない場合はマイクのみ
+        combinedStream = micStream;
+      }
 
       const pc = new RTCPeerConnection();
       pcRef.current = pc;
 
-      pc.addTrack(stream.getTracks()[0]);
+      pc.addTrack(combinedStream.getTracks()[0]);
 
       const dc = pc.createDataChannel("oai-events");
       dcRef.current = dc;
@@ -264,13 +314,43 @@ export default function Home() {
     return text.includes(profile.userName);
   };
 
+  // テキストの類似度をチェック（AI提案を読み上げているか判定）
+  const isSimilarToLastSuggestion = (text: string): boolean => {
+    const lastSuggestion = lastSuggestionTextRef.current;
+    if (!lastSuggestion || lastSuggestion.length < 10) return false;
+
+    // 正規化（句読点・空白を除去）
+    const normalize = (s: string) => s.replace(/[。、！？\s]/g, "").toLowerCase();
+    const normalizedText = normalize(text);
+    const normalizedSuggestion = normalize(lastSuggestion);
+
+    // 部分一致チェック（提案の一部を含んでいるか）
+    if (normalizedSuggestion.includes(normalizedText) || normalizedText.includes(normalizedSuggestion.slice(0, 30))) {
+      return true;
+    }
+
+    // 先頭20文字が一致
+    if (normalizedText.slice(0, 20) === normalizedSuggestion.slice(0, 20)) {
+      return true;
+    }
+
+    return false;
+  };
+
   // 話者を判定（ターン追跡 + パターン + 名前）
   const determineSpeaker = (text: string): "interviewer" | "candidate" => {
-    // 1. AI提案直後（10秒以内）→ 候補者の回答（最優先）
+    const currentTurn = currentTurnRef.current;
     const timeSinceLastSuggestion = Date.now() - lastSuggestionTimeRef.current;
-    if (timeSinceLastSuggestion < 10000 && currentTurn === "candidate") {
-      // ただし、明確な新しい質問パターンは例外
-      if (isStrongQuestionPattern(text) && timeSinceLastSuggestion > 5000) {
+
+    // 0. AI提案と類似（候補者が読み上げている）→ 候補者（最優先）
+    if (timeSinceLastSuggestion < 30000 && isSimilarToLastSuggestion(text)) {
+      return "candidate";
+    }
+
+    // 1. AI提案直後（15秒以内）かつ候補者の番 → 候補者の回答
+    if (timeSinceLastSuggestion < 15000 && currentTurn === "candidate") {
+      // ただし、明確な新しい質問パターン（5秒以上経過後）は例外
+      if (isStrongQuestionPattern(text) && timeSinceLastSuggestion > 8000) {
         return "interviewer";
       }
       return "candidate";
@@ -281,12 +361,27 @@ export default function Home() {
       return "candidate";
     }
 
-    // 3. 強い質問パターン → 面接官
+    // 3. 候補者っぽいキーワード（質問パターンより先にチェック）
+    const candidateKeywords = [
+      /大学|学部|サークル/,
+      /私(?:は|が|の)/,
+      /御社|貴社/,
+      /と考えて|に貢献|を活かし/,
+      /ございます。$/,
+      /福利厚生/,  // 候補者が言及しやすいキーワード
+      /就活軸/,
+      /と思い|と感じ|と考え/,
+    ];
+    if (candidateKeywords.some((p) => p.test(text))) {
+      return "candidate";
+    }
+
+    // 4. 強い質問パターン → 面接官
     if (isStrongQuestionPattern(text)) {
       return "interviewer";
     }
 
-    // 4. 面接官っぽいキーワード
+    // 5. 面接官っぽいキーワード
     const interviewerKeywords = [
       /株式会社.*(?:の|と申し)/,
       /人事|採用|担当/,
@@ -296,18 +391,6 @@ export default function Home() {
     ];
     if (interviewerKeywords.some((p) => p.test(text))) {
       return "interviewer";
-    }
-
-    // 5. 候補者っぽいキーワード
-    const candidateKeywords = [
-      /大学|学部|サークル/,
-      /私(?:は|が|の)/,
-      /御社|貴社/,
-      /と考えて|に貢献|を活かし/,
-      /ございます。$/,
-    ];
-    if (candidateKeywords.some((p) => p.test(text))) {
-      return "candidate";
     }
 
     // 6. デフォルト: 現在のターンに従う
@@ -324,10 +407,10 @@ export default function Home() {
 
             if (speaker === "interviewer") {
               addMessage("question", text);
-              setCurrentTurn("candidate"); // 次は候補者の番
+              currentTurnRef.current = "candidate"; // 次は候補者の番
             } else {
               addMessage("transcript", text);
-              // 候補者が話し終わったら面接官の番に戻る（次の発言で判定）
+              currentTurnRef.current = "interviewer"; // 候補者が話し終わったら面接官の番
             }
           }
           break;
@@ -338,7 +421,8 @@ export default function Home() {
             if (!text.includes("[SKIP]")) {
               addMessage("suggestion", text);
               lastSuggestionTimeRef.current = Date.now();
-              setCurrentTurn("candidate"); // 提案後は候補者が話す番
+              lastSuggestionTextRef.current = text; // 提案内容を保存
+              currentTurnRef.current = "candidate"; // 提案後は候補者が話す番
             }
           }
           break;
@@ -349,7 +433,8 @@ export default function Home() {
             if (!text.includes("[SKIP]")) {
               addMessage("suggestion", text);
               lastSuggestionTimeRef.current = Date.now();
-              setCurrentTurn("candidate");
+              lastSuggestionTextRef.current = text; // 提案内容を保存
+              currentTurnRef.current = "candidate";
             }
           }
           break;
@@ -360,7 +445,8 @@ export default function Home() {
             if (!text.includes("[SKIP]")) {
               addMessage("suggestion", text);
               lastSuggestionTimeRef.current = Date.now();
-              setCurrentTurn("candidate");
+              lastSuggestionTextRef.current = text; // 提案内容を保存
+              currentTurnRef.current = "candidate";
             }
           }
           break;
@@ -410,8 +496,17 @@ export default function Home() {
       streamRef.current.getTracks().forEach((track) => track.stop());
       streamRef.current = null;
     }
+    if (systemStreamRef.current) {
+      systemStreamRef.current.getTracks().forEach((track) => track.stop());
+      systemStreamRef.current = null;
+    }
+    if (audioContextRef.current) {
+      audioContextRef.current.close();
+      audioContextRef.current = null;
+    }
     setIsConnected(false);
     setIsListening(false);
+    setIsSystemAudioEnabled(false);
     setShowSettings(true);
     setMessages([]); // 会話をリセット
     setSessionStartTime(null);
@@ -489,7 +584,15 @@ export default function Home() {
       <header className="border-b border-border bg-white sticky top-0 z-10">
         <div className="max-w-2xl mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
-            <h1 className="text-xl font-bold text-accent">神の声</h1>
+            <div className="flex items-center gap-4">
+              <h1 className="text-xl font-bold text-accent">神の声</h1>
+              <Link
+                href="/howto"
+                className="text-sm text-muted-foreground hover:text-foreground transition"
+              >
+                使い方
+              </Link>
+            </div>
             <div className="flex items-center gap-4">
               {isListening && isConnected && (
                 <div className="flex gap-0.5">
@@ -508,6 +611,26 @@ export default function Home() {
       <main className="flex-1 overflow-y-auto">
         {showSettings && !isConnected ? (
           <div className="max-w-2xl mx-auto p-4">
+            {/* 使い方案内 */}
+            <Link
+              href="/howto"
+              className="block mb-6 p-4 bg-gradient-to-r from-[#fff7ed] to-[#fef3c7] border border-[#f97316]/30 rounded-xl hover:shadow-md transition group"
+            >
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-medium text-[#c2410c] mb-1">
+                    📖 初めての方へ
+                  </p>
+                  <p className="text-xs text-[#9a3412]">
+                    Google Meetでの使い方・設定方法を確認する
+                  </p>
+                </div>
+                <span className="text-[#f97316] group-hover:translate-x-1 transition-transform">
+                  →
+                </span>
+              </div>
+            </Link>
+
             <div className="mb-6">
               <h2 className="text-lg font-bold text-foreground mb-1">
                 面接情報を入力

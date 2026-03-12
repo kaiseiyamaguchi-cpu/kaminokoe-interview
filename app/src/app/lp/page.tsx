@@ -27,6 +27,11 @@ export default function LandingPage() {
       answer:
         "神の声は面接練習・準備ツールです。実際の面接でのご使用は、応募先企業のポリシーをご確認ください。",
     },
+    {
+      question: "Google Meetでどうやって使うの？",
+      answer:
+        "神の声で「開始」を押すと画面共有ダイアログが出ます。「Chromeタブ」→ Meetのタブを選択 →「タブの音声を共有」にチェック →「共有」でOKです。詳しくは使い方ガイドをご覧ください。",
+    },
   ];
 
   return (
@@ -83,12 +88,12 @@ export default function LandingPage() {
             >
               無料で試す
             </Link>
-            <a
-              href="#demo"
+            <Link
+              href="/howto"
               className="px-6 py-3 text-[#4b5563] border border-[#d1d5db] rounded hover:border-[#9ca3af] hover:text-[#1f2937] transition text-center"
             >
-              どう動くか見る
-            </a>
+              使い方を見る
+            </Link>
           </div>
         </div>
       </section>
