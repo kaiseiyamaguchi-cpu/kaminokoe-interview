@@ -1,8 +1,6 @@
 import type { Metadata, Viewport } from "next";
-import { Suspense } from "react";
 import "./globals.css";
 import { ConvexClientProvider } from "@/components/ConvexClientProvider";
-import { HandoffReceiver } from "@/components/HandoffReceiver";
 
 export const metadata: Metadata = {
   title: "かんぺAI Web版 — 面接の暗記大会、降りていい",
@@ -30,9 +28,6 @@ export default function RootLayout({
   return (
     <html lang="ja">
       <body className="antialiased">
-        <Suspense fallback={null}>
-          <HandoffReceiver />
-        </Suspense>
         <ConvexClientProvider>{children}</ConvexClientProvider>
       </body>
     </html>
