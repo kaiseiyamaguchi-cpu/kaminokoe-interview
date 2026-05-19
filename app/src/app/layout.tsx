@@ -1,55 +1,38 @@
 import type { Metadata, Viewport } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+import { Suspense } from "react";
 import "./globals.css";
 import { ConvexClientProvider } from "@/components/ConvexClientProvider";
-
-const geistSans = Geist({
-  variable: "--font-geist-sans",
-  subsets: ["latin"],
-});
-
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin"],
-});
+import { HandoffReceiver } from "@/components/HandoffReceiver";
 
 export const metadata: Metadata = {
-  title: "Kaminokoe - 面接をハックせよ",
-  description: "AIが、あなたの面接を最強にする。面接練習・リアルタイム支援ツール。",
+  title: "かんぺAI Web版 — 面接の暗記大会、降りていい",
+  description: "ブラウザだけで使える面接サポート。Zoom / Meet / Teams 対応。",
   manifest: "/manifest.json",
   icons: {
-    icon: [
-      { url: "/favicon.png", sizes: "32x32", type: "image/png" },
-      { url: "/icon-192.png", sizes: "192x192", type: "image/png" },
-      { url: "/icon-256.png", sizes: "256x256", type: "image/png" },
-    ],
-    apple: "/icon-192.png",
+    icon: [{ url: "/favicon.png", sizes: "32x32", type: "image/png" }],
   },
   appleWebApp: {
     capable: true,
-    statusBarStyle: "default",
-    title: "Kaminokoe",
+    statusBarStyle: "black-translucent",
+    title: "かんぺAI",
   },
 };
 
 export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
-  maximumScale: 1,
-  userScalable: false,
-  themeColor: "#2563eb",
+  themeColor: "#0a0a0f",
 };
 
 export default function RootLayout({
   children,
-}: Readonly<{
-  children: React.ReactNode;
-}>) {
+}: Readonly<{ children: React.ReactNode }>) {
   return (
     <html lang="ja">
-      <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
-      >
+      <body className="antialiased">
+        <Suspense fallback={null}>
+          <HandoffReceiver />
+        </Suspense>
         <ConvexClientProvider>{children}</ConvexClientProvider>
       </body>
     </html>

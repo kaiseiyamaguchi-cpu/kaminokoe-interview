@@ -92,7 +92,7 @@ http.route({
           await ctx.runMutation(internal.purchases.recordPurchaseInternal, {
             userId: userId as Id<"users">,
             stripePaymentId: session.payment_intent || session.id,
-            plan: plan as "ticket1" | "ticket3" | "ticket18" | "ticket36",
+            plan: plan as "starter" | "standard" | "interview" | "addon",
           });
         }
       }

@@ -8,9 +8,12 @@
  * @module
  */
 
-import type * as affiliate from "../affiliate.js";
 import type * as auth from "../auth.js";
+import type * as desktopHandoff from "../desktopHandoff.js";
 import type * as http from "../http.js";
+import type * as interviewPrep from "../interviewPrep.js";
+import type * as interviewPrepAi from "../interviewPrepAi.js";
+import type * as openai from "../openai.js";
 import type * as purchases from "../purchases.js";
 import type * as sessions from "../sessions.js";
 import type * as users from "../users.js";
@@ -22,9 +25,12 @@ import type {
 } from "convex/server";
 
 declare const fullApi: ApiFromModules<{
-  affiliate: typeof affiliate;
   auth: typeof auth;
+  desktopHandoff: typeof desktopHandoff;
   http: typeof http;
+  interviewPrep: typeof interviewPrep;
+  interviewPrepAi: typeof interviewPrepAi;
+  openai: typeof openai;
   purchases: typeof purchases;
   sessions: typeof sessions;
   users: typeof users;

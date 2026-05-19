@@ -1,23 +1,21 @@
 import { v } from "convex/values";
-import { mutation, query, internalMutation } from "./_generated/server";
+import { query, internalMutation } from "./_generated/server";
 import { getAuthUserId } from "@convex-dev/auth/server";
 
-// チケット制の料金プラン
+// チケット制の料金プラン（かんぺAI 新プラン）
 const PLAN_TICKETS = {
-  ticket1: 1,      // 単発1チケット
-  ticket3: 3,      // 30分パック
-  ticket18: 18,    // 5回分（15枚+3枚無料）
-  ticket36: 36,    // 10回分（30枚+6枚無料）
+  starter: 10,     // スターター
+  standard: 30,    // スタンダード
+  interview: 100,  // 就活パック
+  addon: 10,       // 追加チケット
 } as const;
 
 const PLAN_AMOUNTS = {
-  ticket1: 200,
-  ticket3: 500,
-  ticket18: 2500,
-  ticket36: 5000,
+  starter: 1200,
+  standard: 3600,
+  interview: 9990,
+  addon: 1300,
 } as const;
-
-type PlanType = keyof typeof PLAN_TICKETS;
 
 // Stripe Webhookから呼ばれる内部mutation
 export const recordPurchaseInternal = internalMutation({
@@ -25,10 +23,10 @@ export const recordPurchaseInternal = internalMutation({
     userId: v.id("users"),
     stripePaymentId: v.string(),
     plan: v.union(
-      v.literal("ticket1"),
-      v.literal("ticket3"),
-      v.literal("ticket18"),
-      v.literal("ticket36")
+      v.literal("starter"),
+      v.literal("standard"),
+      v.literal("interview"),
+      v.literal("addon")
     ),
   },
   handler: async (ctx, args) => {
@@ -95,10 +93,10 @@ export const getPlanInfo = query({
   args: {},
   handler: async () => {
     return {
-      ticket1: { tickets: 1, price: 200, minutes: 10 },
-      ticket3: { tickets: 3, price: 500, minutes: 30 },
-      ticket18: { tickets: 18, price: 2500, minutes: 180 },
-      ticket36: { tickets: 36, price: 5000, minutes: 360 },
+      starter: { tickets: 10, price: 1200, minutes: 100 },
+      standard: { tickets: 30, price: 3600, minutes: 300 },
+      interview: { tickets: 100, price: 9990, minutes: 1000 },
+      addon: { tickets: 10, price: 1300, minutes: 100 },
     };
   },
 });

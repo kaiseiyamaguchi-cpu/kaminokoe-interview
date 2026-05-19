@@ -3,37 +3,41 @@
 import { useState, useEffect, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import Link from "next/link";
+import Image from "next/image";
 import { useConvexAuth, useQuery } from "convex/react";
 import { api } from "../../../convex/_generated/api";
 import { AuthForm } from "@/components/AuthForm";
 
-type Plan = "ticket1" | "ticket3" | "ticket18" | "ticket36";
+type Plan = "starter" | "standard" | "interview" | "addon";
 
-const PLANS: Record<Plan, { name: string; price: number; tickets: number; minutes: number; popular?: boolean }> = {
-  ticket1: {
-    name: "1チケット",
-    price: 200,
-    tickets: 1,
-    minutes: 10,
+const PLANS: Record<
+  Plan,
+  { name: string; price: number; tickets: number; minutes: number; popular?: boolean }
+> = {
+  starter: {
+    name: "スターター",
+    price: 1200,
+    tickets: 10,
+    minutes: 100,
   },
-  ticket3: {
-    name: "30分パック",
-    price: 500,
-    tickets: 3,
-    minutes: 30,
-  },
-  ticket18: {
-    name: "5回分パック",
-    price: 2500,
-    tickets: 18,
-    minutes: 180,
+  standard: {
+    name: "スタンダード",
+    price: 3600,
+    tickets: 30,
+    minutes: 300,
     popular: true,
   },
-  ticket36: {
-    name: "10回分パック",
-    price: 5000,
-    tickets: 36,
-    minutes: 360,
+  interview: {
+    name: "就活パック",
+    price: 9990,
+    tickets: 100,
+    minutes: 1000,
+  },
+  addon: {
+    name: "追加チケット",
+    price: 1300,
+    tickets: 10,
+    minutes: 100,
   },
 };
 
@@ -49,11 +53,8 @@ function PurchaseButton({ plan, userId }: { plan: Plan; userId: string }) {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ plan, userId }),
       });
-
       const data = await res.json();
-      if (data.url) {
-        window.location.href = data.url;
-      }
+      if (data.url) window.location.href = data.url;
     } catch (error) {
       console.error("Purchase error:", error);
     } finally {
@@ -65,27 +66,29 @@ function PurchaseButton({ plan, userId }: { plan: Plan; userId: string }) {
     <button
       onClick={handlePurchase}
       disabled={loading}
-      className={`relative w-full p-4 border-2 rounded-xl transition disabled:opacity-50 ${
+      className={`relative w-full p-4 rounded-xl border transition disabled:opacity-50 text-left ${
         planInfo.popular
-          ? "border-[#f97316] bg-[#fff7ed]"
-          : "border-[#e5e7eb] hover:border-[#f97316] hover:bg-[#fffbf7]"
+          ? "border-[color:var(--accent)] bg-[color:var(--accent-bg)]"
+          : "border-[color:var(--line)] bg-[color:var(--bg2)] hover:border-[color:var(--line2)]"
       }`}
     >
       {planInfo.popular && (
-        <span className="absolute -top-3 left-1/2 -translate-x-1/2 px-3 py-0.5 bg-[#f97316] text-white text-xs rounded-full">
+        <span className="absolute -top-2.5 left-1/2 -translate-x-1/2 px-3 py-0.5 bg-[color:var(--accent)] text-white text-[10px] font-medium rounded-full">
           人気
         </span>
       )}
       <div className="flex justify-between items-center">
-        <div className="text-left">
-          <div className="font-medium text-[#1e3a5f]">{planInfo.name}</div>
-          <div className="text-xs text-[#6b7280]">
+        <div>
+          <div className="font-semibold text-[color:var(--text)]">{planInfo.name}</div>
+          <div className="text-xs text-[color:var(--text-dim)] mt-0.5">
             {planInfo.tickets}チケット / {planInfo.minutes}分
           </div>
         </div>
         <div className="text-right">
-          <div className="font-bold text-[#1e3a5f]">¥{planInfo.price.toLocaleString()}</div>
-          <div className="text-xs text-[#6b7280]">
+          <div className="font-bold text-[color:var(--text)] tabular">
+            ¥{planInfo.price.toLocaleString()}
+          </div>
+          <div className="text-[11px] text-[color:var(--text-mute)] tabular">
             ¥{Math.round(planInfo.price / planInfo.tickets)}/チケット
           </div>
         </div>
@@ -107,19 +110,18 @@ function formatDate(timestamp: number) {
 function getTransactionTypeLabel(type: string) {
   switch (type) {
     case "initial":
-      return { label: "初回ボーナス", color: "text-green-600" };
+      return { label: "初回ボーナス", color: "text-[color:var(--success)]" };
     case "purchase":
-      return { label: "購入", color: "text-blue-600" };
+      return { label: "購入", color: "text-[color:var(--accent2)]" };
     case "affiliate":
-      return { label: "紹介特典", color: "text-purple-600" };
+      return { label: "紹介特典", color: "text-[color:var(--accent2)]" };
     case "consume":
-      return { label: "使用", color: "text-gray-600" };
+      return { label: "使用", color: "text-[color:var(--text-dim)]" };
     default:
-      return { label: type, color: "text-gray-600" };
+      return { label: type, color: "text-[color:var(--text-dim)]" };
   }
 }
 
-// 購入通知コンポーネント（useSearchParamsを使用）
 function PurchaseNotification() {
   const searchParams = useSearchParams();
   const [notification, setNotification] = useState<{ type: "success" | "canceled"; tickets?: number } | null>(null);
@@ -142,10 +144,10 @@ function PurchaseNotification() {
 
   return (
     <div
-      className={`p-4 rounded-xl flex items-center justify-between ${
+      className={`p-4 rounded-xl flex items-center justify-between border ${
         notification.type === "success"
-          ? "bg-green-50 border border-green-200"
-          : "bg-gray-50 border border-gray-200"
+          ? "bg-[color:var(--accent-bg)] border-[color:var(--accent)]/40"
+          : "bg-[color:var(--bg2)] border-[color:var(--line)]"
       }`}
     >
       <div className="flex items-center gap-3">
@@ -155,15 +157,15 @@ function PurchaseNotification() {
         <div>
           {notification.type === "success" ? (
             <>
-              <p className="font-medium text-green-800">購入完了</p>
-              <p className="text-sm text-green-600">
+              <p className="font-medium text-[color:var(--text)]">購入完了</p>
+              <p className="text-sm text-[color:var(--text-dim)]">
                 {notification.tickets}チケットが追加されました
               </p>
             </>
           ) : (
             <>
-              <p className="font-medium text-gray-800">購入をキャンセルしました</p>
-              <p className="text-sm text-gray-600">
+              <p className="font-medium text-[color:var(--text)]">購入をキャンセルしました</p>
+              <p className="text-sm text-[color:var(--text-dim)]">
                 またのご利用をお待ちしています
               </p>
             </>
@@ -172,7 +174,7 @@ function PurchaseNotification() {
       </div>
       <button
         onClick={() => setNotification(null)}
-        className="text-gray-400 hover:text-gray-600"
+        className="text-[color:var(--text-mute)] hover:text-[color:var(--text-dim)]"
       >
         ✕
       </button>
@@ -187,66 +189,77 @@ function MyPageContent() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-[#fafafa] flex items-center justify-center">
-        <div className="animate-spin w-8 h-8 border-4 border-[#f97316] border-t-transparent rounded-full"></div>
+      <div className="min-h-screen flex items-center justify-center text-[color:var(--text-dim)] text-sm">
+        読み込み中...
       </div>
     );
   }
 
   if (!isAuthenticated) {
-    return (
-      <div className="min-h-screen bg-[#fafafa] flex items-center justify-center">
-        <AuthForm />
-      </div>
-    );
+    return <AuthForm />;
   }
 
+  const tickets = profile?.tickets ?? 0;
+  const lowTickets = tickets <= 3;
+
   return (
-    <div className="min-h-screen bg-[#fafafa] text-[#1a1a1a]">
+    <div className="min-h-screen bg-[color:var(--bg)] text-[color:var(--text)]">
       {/* Header */}
-      <header className="bg-white border-b border-[#e5e7eb] sticky top-0 z-10">
-        <div className="max-w-2xl mx-auto px-4 py-4 flex items-center justify-between">
-          <Link href="/" className="text-lg font-medium text-[#1e3a5f]">
-            神の声
+      <header className="border-b border-[color:var(--line)] bg-[color:var(--bg)]/80 backdrop-blur-xl sticky top-0 z-10">
+        <div className="max-w-2xl mx-auto px-5 py-3.5 flex items-center justify-between">
+          <Link href="/" className="flex items-center gap-2">
+            <Image src="/icon-512.png" alt="kanpe.ai" width={22} height={22} className="h-[22px] w-[22px]" />
+            <span className="text-[14px] font-medium tracking-tight text-[color:var(--text)]">kanpe.ai</span>
           </Link>
-          <span className="text-sm text-[#6b7280]">マイページ</span>
+          <span className="text-xs text-[color:var(--text-mute)]">マイページ</span>
         </div>
       </header>
 
-      <main className="max-w-2xl mx-auto px-4 py-6 space-y-6">
+      <main className="max-w-2xl mx-auto px-5 py-6 space-y-5">
         {/* 購入通知 */}
         <Suspense fallback={null}>
           <PurchaseNotification />
         </Suspense>
 
         {/* チケット残高 */}
-        <section className="bg-white rounded-2xl p-6 shadow-sm">
+        <section
+          className={`rounded-2xl p-6 bg-[color:var(--bg2)] border ${
+            lowTickets ? "border-[color:var(--warn)]/40" : "border-[color:var(--line)]"
+          }`}
+        >
           <div className="text-center">
-            <p className="text-sm text-[#6b7280] mb-1">残りチケット</p>
-            <div className="flex items-center justify-center gap-2">
-              <span className="text-5xl font-bold text-[#1e3a5f]">
-                {profile?.tickets ?? 0}
-              </span>
-              <span className="text-lg text-[#6b7280]">チケット</span>
-            </div>
-            <p className="text-xs text-[#9ca3af] mt-2">
-              1チケット = 10分間の面接練習
+            <p className="text-[11px] uppercase tracking-wider text-[color:var(--text-mute)] mb-1">
+              残りチケット
             </p>
+            <div className="flex items-baseline justify-center gap-2">
+              <span className="text-5xl font-bold text-[color:var(--accent2)] tabular">
+                {tickets}
+              </span>
+              <span className="text-base text-[color:var(--text-dim)]">枚</span>
+            </div>
+            <p className="text-xs text-[color:var(--text-mute)] mt-2 tabular">
+              約 {tickets * 10} 分 ・ 1チケット = 10分間の面接サポート
+            </p>
+            {lowTickets && (
+              <p className="text-[11px] text-[color:var(--warn)] mt-2">
+                残量が少なくなっています
+              </p>
+            )}
           </div>
 
-          <div className="mt-6">
+          <div className="mt-5">
             <Link
               href="/"
-              className="block w-full py-3 bg-[#f97316] hover:bg-[#ea580c] text-white text-center font-medium rounded-xl transition"
+              className="block w-full py-3 bg-[color:var(--accent)] hover:opacity-90 text-white text-center font-medium rounded-xl transition"
             >
-              面接練習を始める
+              面接モードを開始
             </Link>
           </div>
         </section>
 
         {/* チケット購入 */}
-        <section className="bg-white rounded-2xl p-6 shadow-sm">
-          <h2 className="text-lg font-bold text-[#1e3a5f] mb-4">
+        <section className="rounded-2xl p-6 bg-[color:var(--bg2)] border border-[color:var(--line)]">
+          <h2 className="text-base font-bold text-[color:var(--text)] mb-4">
             チケットを購入
           </h2>
           <div className="space-y-3">
@@ -258,37 +271,37 @@ function MyPageContent() {
               />
             ))}
           </div>
-          <p className="text-xs text-[#9ca3af] mt-4 text-center">
+          <p className="text-[11px] text-[color:var(--text-mute)] mt-4 text-center">
             クレジットカード決済（Stripe）で安全にお支払い
           </p>
         </section>
 
         {/* チケット履歴 */}
-        <section className="bg-white rounded-2xl p-6 shadow-sm">
-          <h2 className="text-lg font-bold text-[#1e3a5f] mb-4">履歴</h2>
+        <section className="rounded-2xl p-6 bg-[color:var(--bg2)] border border-[color:var(--line)]">
+          <h2 className="text-base font-bold text-[color:var(--text)] mb-4">履歴</h2>
           {ticketHistory && ticketHistory.length > 0 ? (
-            <div className="space-y-3">
+            <div className="space-y-2.5">
               {ticketHistory.map((tx) => {
                 const typeInfo = getTransactionTypeLabel(tx.type);
                 return (
                   <div
                     key={tx._id}
-                    className="flex items-center justify-between py-2 border-b border-[#f3f4f6] last:border-0"
+                    className="flex items-center justify-between py-2 border-b border-[color:var(--line)] last:border-0"
                   >
                     <div>
                       <span className={`text-sm font-medium ${typeInfo.color}`}>
                         {typeInfo.label}
                       </span>
                       {tx.description && (
-                        <p className="text-xs text-[#9ca3af]">{tx.description}</p>
+                        <p className="text-xs text-[color:var(--text-mute)]">{tx.description}</p>
                       )}
-                      <p className="text-xs text-[#d1d5db]">
+                      <p className="text-[11px] text-[color:var(--text-mute)] tabular">
                         {formatDate(tx.createdAt)}
                       </p>
                     </div>
                     <span
-                      className={`font-bold ${
-                        tx.amount > 0 ? "text-green-600" : "text-[#6b7280]"
+                      className={`font-bold tabular ${
+                        tx.amount > 0 ? "text-[color:var(--success)]" : "text-[color:var(--text-dim)]"
                       }`}
                     >
                       {tx.amount > 0 ? "+" : ""}
@@ -299,29 +312,29 @@ function MyPageContent() {
               })}
             </div>
           ) : (
-            <p className="text-sm text-[#9ca3af] text-center py-4">
+            <p className="text-sm text-[color:var(--text-mute)] text-center py-4">
               履歴はありません
             </p>
           )}
         </section>
 
         {/* リンク */}
-        <section className="space-y-2">
+        <section className="space-y-2 pb-8">
           <Link
             href="/legal/tokushoho"
-            className="block text-sm text-[#6b7280] hover:text-[#374151] transition"
+            className="block text-xs text-[color:var(--text-mute)] hover:text-[color:var(--text-dim)] transition"
           >
             特定商取引法に基づく表示 →
           </Link>
           <Link
             href="/legal/terms"
-            className="block text-sm text-[#6b7280] hover:text-[#374151] transition"
+            className="block text-xs text-[color:var(--text-mute)] hover:text-[color:var(--text-dim)] transition"
           >
             利用規約 →
           </Link>
           <Link
             href="/legal/privacy"
-            className="block text-sm text-[#6b7280] hover:text-[#374151] transition"
+            className="block text-xs text-[color:var(--text-mute)] hover:text-[color:var(--text-dim)] transition"
           >
             プライバシーポリシー →
           </Link>
@@ -335,8 +348,8 @@ export default function MyPage() {
   return (
     <Suspense
       fallback={
-        <div className="min-h-screen bg-[#fafafa] flex items-center justify-center">
-          <div className="animate-spin w-8 h-8 border-4 border-[#f97316] border-t-transparent rounded-full"></div>
+        <div className="min-h-screen flex items-center justify-center text-[color:var(--text-dim)] text-sm">
+          読み込み中...
         </div>
       }
     >

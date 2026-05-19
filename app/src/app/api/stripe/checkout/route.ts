@@ -8,31 +8,31 @@ const getStripe = () => {
   return new Stripe(process.env.STRIPE_SECRET_KEY);
 };
 
-// チケット制の新プラン
+// チケット制の料金プラン（かんぺAI 新プラン）
 const PLANS = {
-  ticket1: {
-    price: 200,
-    tickets: 1,
-    name: "1チケット",
-    description: "10分間の面接練習",
+  starter: {
+    price: 1200,
+    tickets: 10,
+    name: "スターター",
+    description: "10チケット / 100分間の面接サポート",
   },
-  ticket3: {
-    price: 500,
-    tickets: 3,
-    name: "30分パック",
-    description: "30分間の面接練習（3チケット）",
+  standard: {
+    price: 3600,
+    tickets: 30,
+    name: "スタンダード",
+    description: "30チケット / 300分間の面接サポート",
   },
-  ticket18: {
-    price: 2500,
-    tickets: 18,
-    name: "5回分パック",
-    description: "180分間の面接練習（18チケット）",
+  interview: {
+    price: 9990,
+    tickets: 100,
+    name: "就活パック",
+    description: "100チケット / 1000分間の面接サポート",
   },
-  ticket36: {
-    price: 5000,
-    tickets: 36,
-    name: "10回分パック",
-    description: "360分間の面接練習（36チケット）",
+  addon: {
+    price: 1300,
+    tickets: 10,
+    name: "追加チケット",
+    description: "10チケット / 100分間の面接サポート",
   },
 } as const;
 
@@ -61,7 +61,7 @@ export async function POST(req: NextRequest) {
           price_data: {
             currency: "jpy",
             product_data: {
-              name: `神の声 ${planInfo.name}`,
+              name: `かんぺAI ${planInfo.name}`,
               description: planInfo.description,
             },
             unit_amount: planInfo.price,

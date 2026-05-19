@@ -1,6 +1,7 @@
 import { v } from "convex/values";
 import { mutation, query } from "./_generated/server";
 import { getAuthUserId } from "@convex-dev/auth/server";
+import { ONBOARDING_GUIDE_VERSION } from "./interviewPrep";
 
 const INITIAL_FREE_TICKETS = 3; // 初回登録で3チケット（30分）
 
@@ -41,6 +42,7 @@ export const getOrCreateProfile = mutation({
       userId,
       tickets: INITIAL_FREE_TICKETS,
       lineUserId: args.lineUserId,
+      onboardingGuideSeenVersion: 0,
       createdAt: Date.now(),
     });
 
@@ -69,6 +71,125 @@ export const getProfile = query({
       .query("userProfiles")
       .withIndex("by_user_id", (q) => q.eq("userId", userId))
       .first();
+  },
+});
+
+export const completeProfile = mutation({
+  args: {
+    displayName: v.optional(v.string()),
+    email: v.string(),
+    university: v.string(),
+    faculty: v.optional(v.string()),
+    graduationYear: v.string(),
+    industries: v.optional(v.array(v.string())),
+    jobTypes: v.optional(v.array(v.string())),
+    preferredLocations: v.optional(v.array(v.string())),
+  },
+  handler: async (ctx, args) => {
+    const userId = await getAuthUserId(ctx);
+    if (!userId) {
+      throw new Error("Not authenticated");
+    }
+
+    let profile = await ctx.db
+      .query("userProfiles")
+      .withIndex("by_user_id", (q) => q.eq("userId", userId))
+      .first();
+
+    if (!profile) {
+      // プロフィール未作成の場合は自動作成
+      const profileId = await ctx.db.insert("userProfiles", {
+        userId,
+        tickets: INITIAL_FREE_TICKETS,
+        onboardingGuideSeenVersion: 0,
+        createdAt: Date.now(),
+      });
+      await ctx.db.insert("ticketTransactions", {
+        userId,
+        amount: INITIAL_FREE_TICKETS,
+        type: "initial",
+        description: "初回登録ボーナス",
+        createdAt: Date.now(),
+      });
+      profile = (await ctx.db.get(profileId))!;
+    }
+
+    await ctx.db.patch(profile._id, {
+      displayName: args.displayName,
+      email: args.email,
+      university: args.university,
+      faculty: args.faculty,
+      graduationYear: args.graduationYear,
+      industries: args.industries,
+      jobTypes: args.jobTypes,
+      preferredLocations: args.preferredLocations,
+      profileCompletedAt: Date.now(),
+    });
+
+    return await ctx.db.get(profile._id);
+  },
+});
+
+export const patchMyBasicProfile = mutation({
+  args: {
+    displayName: v.optional(v.string()),
+    email: v.optional(v.string()),
+    university: v.optional(v.string()),
+    faculty: v.optional(v.string()),
+    graduationYear: v.optional(v.string()),
+    industries: v.optional(v.array(v.string())),
+    jobTypes: v.optional(v.array(v.string())),
+    preferredLocations: v.optional(v.array(v.string())),
+  },
+  handler: async (ctx, args) => {
+    const userId = await getAuthUserId(ctx);
+    if (!userId) throw new Error("Not authenticated");
+
+    const profile = await ctx.db
+      .query("userProfiles")
+      .withIndex("by_user_id", (q) => q.eq("userId", userId))
+      .first();
+
+    if (!profile) {
+      throw new Error("Profile not found");
+    }
+
+    const patch: Record<string, unknown> = {};
+
+    if (args.displayName !== undefined) patch.displayName = args.displayName;
+    if (args.email !== undefined) patch.email = args.email;
+    if (args.university !== undefined) patch.university = args.university;
+    if (args.faculty !== undefined) patch.faculty = args.faculty;
+    if (args.graduationYear !== undefined)
+      patch.graduationYear = args.graduationYear;
+    if (args.industries !== undefined) patch.industries = args.industries;
+    if (args.jobTypes !== undefined) patch.jobTypes = args.jobTypes;
+    if (args.preferredLocations !== undefined)
+      patch.preferredLocations = args.preferredLocations;
+
+    await ctx.db.patch(profile._id, patch);
+    return await ctx.db.get(profile._id);
+  },
+});
+
+/** オンボーディング視聴完了（またはスキップ）でバージョンを進める */
+export const markProductOnboardingSeen = mutation({
+  args: {},
+  handler: async (ctx) => {
+    const userId = await getAuthUserId(ctx);
+    if (!userId) throw new Error("Not authenticated");
+
+    const profile = await ctx.db
+      .query("userProfiles")
+      .withIndex("by_user_id", (q) => q.eq("userId", userId))
+      .first();
+
+    if (!profile) throw new Error("Profile not found");
+
+    await ctx.db.patch(profile._id, {
+      onboardingGuideSeenVersion: ONBOARDING_GUIDE_VERSION,
+    });
+    return { ok: true };
   },
 });
 
