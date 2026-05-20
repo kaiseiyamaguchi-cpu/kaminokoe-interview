@@ -13,7 +13,8 @@ export function AuthForm() {
     setError("");
     setLoading(provider);
     try {
-      await signIn(provider, { redirectTo: window.location.href });
+      const result = await signIn(provider);
+      if (result?.redirect) window.location.href = result.redirect.toString();
     } catch (err) {
       console.error(`${provider} login error:`, err);
       setError(`${provider === "google" ? "Google" : "LINE"} ログインに失敗しました`);
