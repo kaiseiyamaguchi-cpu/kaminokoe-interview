@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useSearchParams } from "next/navigation";
-import { useAction, useQuery } from "convex/react";
+import { useAction, useMutation, useQuery } from "convex/react";
 import { api } from "../../../convex/_generated/api";
 import type { Id } from "../../../convex/_generated/dataModel";
 import Link from "next/link";
@@ -56,6 +56,8 @@ export function LiveSession() {
 
   const createRealtimeToken = useAction(api.openai.createRealtimeToken);
   const generateAnswer = useAction(api.interviewPrepAi.generateAnswer);
+  const startSessionMut = useMutation(api.sessions.startSession);
+  const endSessionMut = useMutation(api.sessions.endSession);
 
   // ─── State ─────────────────────────────────────────
   const [stage, setStage] = useState<Stage>("prepare");
@@ -68,6 +70,7 @@ export function LiveSession() {
   const [isPipActive, setIsPipActive] = useState(false);
   const [startedAt, setStartedAt] = useState<number | null>(null);
   const [remainingSec, setRemainingSec] = useState(ticketCount * 600);
+  const [sessionId, setSessionId] = useState<Id<"sessionLogs"> | null>(null);
 
   // Refs for non-state side effects
   const pcRef = useRef<RTCPeerConnection | null>(null);
@@ -208,6 +211,11 @@ export function LiveSession() {
     setError(null);
     setStage("asking_share");
     try {
+      // 0. チケット消費 — セッション開始をバックエンドに記録
+      const session = await startSessionMut({ ticketCount });
+      setSessionId(session.sessionId);
+      setRemainingSec(session.maxDurationMinutes * 60);
+
       // 1. mic
       const mic = await navigator.mediaDevices.getUserMedia({
         audio: { echoCancellation: true, noiseSuppression: true, autoGainControl: true },
@@ -341,13 +349,16 @@ export function LiveSession() {
       setStage("error");
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [createRealtimeToken, handleEvent]);
+  }, [createRealtimeToken, handleEvent, startSessionMut, ticketCount]);
 
   const endSession = useCallback(() => {
     cleanup();
+    if (sessionId) {
+      endSessionMut({ sessionId }).catch(console.error);
+    }
     setStage("done");
     setIsPipActive(false);
-  }, [cleanup]);
+  }, [cleanup, sessionId, endSessionMut]);
 
   // ─── Format helpers ────────────────────────────────
   const fmt = (s: number) => `${Math.floor(s / 60)}:${(s % 60).toString().padStart(2, "0")}`;
