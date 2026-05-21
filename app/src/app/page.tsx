@@ -1,11 +1,12 @@
 "use client";
 
 import Link from "next/link";
-import { useConvexAuth, useQuery } from "convex/react";
+import { useConvexAuth, useQuery, useMutation } from "convex/react";
 import { api } from "../../convex/_generated/api";
 import { AuthForm } from "@/components/AuthForm";
+import { ProfileSetup } from "@/components/ProfileSetup";
 import { Shell } from "@/components/Shell";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 export default function HomePage() {
   const { isAuthenticated, isLoading } = useConvexAuth();
@@ -14,6 +15,29 @@ export default function HomePage() {
     return <div className="min-h-screen flex items-center justify-center text-[color:var(--text-dim)] text-sm">読み込み中...</div>;
   }
   if (!isAuthenticated) return <AuthForm />;
+  return <AuthenticatedGate />;
+}
+
+function AuthenticatedGate() {
+  const profile = useQuery(api.users.getProfile);
+  const getOrCreate = useMutation(api.users.getOrCreateProfile);
+  const [ensured, setEnsured] = useState(false);
+
+  useEffect(() => {
+    if (profile === undefined) return; // loading
+    if (profile === null && !ensured) {
+      getOrCreate({}).then(() => setEnsured(true)).catch(console.error);
+    }
+  }, [profile, ensured, getOrCreate]);
+
+  if (profile === undefined) {
+    return <div className="min-h-screen flex items-center justify-center text-[color:var(--text-dim)] text-sm">読み込み中...</div>;
+  }
+
+  if (!profile?.profileCompletedAt) {
+    return <ProfileSetup />;
+  }
+
   return <Home />;
 }
 
