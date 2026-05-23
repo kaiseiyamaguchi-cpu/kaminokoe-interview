@@ -3,8 +3,10 @@
 import Link from "next/link";
 import { useConvexAuth, useQuery, useMutation } from "convex/react";
 import { api } from "../../convex/_generated/api";
+import { ONBOARDING_GUIDE_VERSION } from "../../convex/interviewPrep";
 import { AuthForm } from "@/components/AuthForm";
 import { ProfileSetup } from "@/components/ProfileSetup";
+import { OnboardingSlides } from "@/components/OnboardingSlides";
 import { Shell } from "@/components/Shell";
 import { useState, useEffect } from "react";
 
@@ -36,6 +38,13 @@ function AuthenticatedGate() {
 
   if (!profile?.profileCompletedAt) {
     return <ProfileSetup />;
+  }
+
+  if (
+    profile.onboardingGuideSeenVersion !== undefined &&
+    profile.onboardingGuideSeenVersion < ONBOARDING_GUIDE_VERSION
+  ) {
+    return <OnboardingSlides />;
   }
 
   return <Home />;
@@ -125,15 +134,15 @@ function Home() {
         </p>
       </div>
 
-      <h2 className="text-base font-bold mb-1 mt-8">📋 マイページ</h2>
-      <p className="text-[11px] text-[color:var(--text-mute)] mb-3">企業対策・想定問答の編集・チケット購入はこちらから</p>
+      <h2 className="text-base font-bold mb-1 mt-8">📋 準備</h2>
+      <p className="text-[11px] text-[color:var(--text-mute)] mb-3">想定問答の登録・チケット購入はこちらから</p>
       <Link
-        href="/mypage"
+        href="/qa"
         className="flex items-center justify-between px-5 py-4 bg-[color:var(--bg2)] border border-[color:var(--line)] rounded-xl mb-2 hover:border-[color:var(--line2)]"
       >
         <div>
-          <div className="font-semibold text-sm">企業対策と想定問答を編集</div>
-          <div className="text-[11px] text-[color:var(--text-dim)] mt-0.5">登録済み {preps?.length ?? 0} 社</div>
+          <div className="font-semibold text-sm">想定問答を編集</div>
+          <div className="text-[11px] text-[color:var(--text-dim)] mt-0.5">回答を登録するとAIの精度が上がります</div>
         </div>
         <span className="text-[color:var(--text-dim)]">→</span>
       </Link>

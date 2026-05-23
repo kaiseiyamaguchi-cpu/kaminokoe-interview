@@ -5,7 +5,7 @@ import { useAuthActions } from "@convex-dev/auth/react";
 import { useQuery } from "convex/react";
 import { api } from "../../convex/_generated/api";
 
-export function Shell({ children, active }: { children: React.ReactNode; active?: "home" | "mypage" }) {
+export function Shell({ children, active }: { children: React.ReactNode; active?: "home" | "qa" | "mypage" | "help" }) {
   const { signOut } = useAuthActions();
   const me = useQuery(api.users.getProfile);
 
@@ -18,7 +18,9 @@ export function Shell({ children, active }: { children: React.ReactNode; active?
         </Link>
         <nav className="flex items-center gap-5 text-sm">
           <Link href="/" className={active === "home" ? "font-semibold" : "text-[color:var(--text-dim)]"}>ホーム</Link>
+          <Link href="/qa" className={active === "qa" ? "font-semibold" : "text-[color:var(--text-dim)]"}>想定問答</Link>
           <Link href="/mypage" className={active === "mypage" ? "font-semibold" : "text-[color:var(--text-dim)]"}>マイページ</Link>
+          <Link href="/help" className={active === "help" ? "font-semibold" : "text-[color:var(--text-dim)]"}>ヘルプ</Link>
           {me ? (
             <button onClick={() => signOut()} className="text-xs text-[color:var(--text-mute)]">ログアウト</button>
           ) : null}
